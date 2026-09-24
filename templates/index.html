@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 500px; margin: 40px auto; padding: 20px; background: #f4f4f9; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
+        button { background: #28a745; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; }
+        button.delete { background: #dc3545; padding: 5px 10px; float: right; }
+        ul { list-style: none; padding: 0; }
+        li { background: #eee; margin-top: 10px; padding: 10px; border-radius: 4px; overflow: hidden; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Task Manager</h2>
+        <input type="text" id="name" placeholder="Task Name">
+        <input type="text" id="description" placeholder="Task Description">
+        <button onclick="addTask()">Add Task</button>
+    </div>
+
+    <ul id="taskList"></ul>
+
+    <script>
+        const API_URL = '/tasks';
+
+        // Load tasks on page load
+        async function fetchTasks() {
+            const response = await fetch(API_URL);
+            const data = await response.json();
+            const list = document.getElementById('taskList');
+            list.innerHTML = '';
+            
+            data.tasks.forEach(task => {
+                list.innerHTML += `
+                    <li>
+                        <strong>${task.name}</strong><br>
+                        ${task.description}
+                        <button class="delete" onclick="deleteTask(${task.id})">Delete</button>
+                    </li>
+                `;
+            });
+        }
+
+        async function addTask() {
+            const name = document.getElementById('name').value;
+            const description = document.getElementById('description').value;
+
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, description })
+            });
+
+            document.getElementById('name').value = '';
+            document.getElementById('description').value = '';
+            fetchTasks();
+        }
+
+        async function deleteTask(id) {
+            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            fetchTasks();
+        }
+
+        fetchTasks();
+    </script>
+</body>
+</html>
